@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Drawing</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+    <style>
+        #main-canvas {
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Drawing</h1>
+    <div id="app">
+        <div class="tool-bar">
+            <div>
+                <span>color: </span>
+                <input id="color-selector" type="color">
+                <span>brush-size: </span>
+                <input id="size-selector" type="number">
+            </div>
+            <p id="tool-guide"></p>
+            <button id="pen-tool">
+                <i class="fa fa-pencil" aria-hidden="true"></i>
+            </button>
+            <button id="eraser-tool">
+                <i class="fa fa-eraser" aria-hidden="true"></i>
+            </button>
+        </div>
+        <canvas id="main-canvas" width="320" height="240"></canvas>
+    </div>
+
+    <script>
+        const penToolbtn = document.querySelector('#pen-tool');
+        const eraserToolbtn = document.querySelector('#eraser-tool');
+
+        const toolGuide = document.querySelector('#tool-guide');
+        const colorSelector = document.querySelector('#color-selector');
+        const sizeSelector = document.querySelector('#size-selector');
+
+        const canvas = document.querySelector('#main-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const config = {
+            defaultBGColor: "#FFFFFF",
+            defaultBrushSize: 10,
+            defaultBrushColor: "#00FFFF",
+        }
+
+        let eraserMode = false;
+        let currentTool = "pencil";
+
+        let bgColor = config.defaultBGColor;
+        let brushSize = config.defaultBrushSize;
+        let brushColor = config.defaultBrushColor;
+
+        let mouse = {x: 0, y: 0};
+
+        function initialize() {
+            colorSelector.value = config.defaultBrushColor;
+            sizeSelector.value = config.defaultBrushSize;
+            initializeBrush();
+        }
+
+        function initializeBrush() {
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            setBrushSize(config.defaultBrushSize);
+            setBrushColor(config.defaultBrushColor);
+        }
+
+        function setBrushSize(size) {
+            brushSize = size;
+            updateBrush();
+            updateGuide();
+        }
+
+        function setBrushColor(color) {
+            brushColor = color;
+            updateColor();
+        }
+
+        function updateBrush() {
+            ctx.lineWidth = brushSize;
+        }
+
+        function updateColor() {
+            if(eraserMode) {
+                ctx.strokeStyle = bgColor;
+            } else {
+                ctx.strokeStyle = brushColor;
+            }
+        }
+
+        function updateGuide() {
+            toolGuide.innerHTML = `Tool: ${currentTool}(size: ${brushSize})`;
+        }
+
+        penToolbtn.addEventListener("click", () => {
+            currentTool = "pencil";
+            eraserMode = false;
+            updateColor();
+            updateGuide();
+        });
+
+        eraserToolbtn.addEventListener("click", () => {
+            currentTool = "eraser";
+            eraserMode = true;
+            updateColor();
+            updateGuide();
+        });
+
+        colorSelector.addEventListener("change", function() {
+            setBrushColor(colorSelector.value);
+        })
+
+        sizeSelector.addEventListener("change", function() {
+            setBrushSize(sizeSelector.value);
+        })
+        
+        canvas.addEventListener('mousemove', function(e) {
+            mouse.x = e.pageX - this.offsetLeft;
+            mouse.y = e.pageY - this.offsetTop;
+        }, false);
+
+        canvas.addEventListener('mousedown', function(e) {
+            ctx.beginPath();
+            ctx.moveTo(mouse.x, mouse.y);
+
+            canvas.addEventListener('mousemove', onPaint, false);
+        }, false);
+
+        canvas.addEventListener('mouseup', function() {
+            canvas.removeEventListener('mousemove', onPaint, false);
+        }, false);
+
+        let onPaint = function() {
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.stroke();
+        };
+
+        window.onload = () => {
+            initialize();
+        }
+    </script>
+</body>
+</html>
